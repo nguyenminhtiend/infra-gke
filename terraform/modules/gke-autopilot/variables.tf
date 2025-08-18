@@ -33,11 +33,11 @@ variable "release_channel" {
   description = "Release channel for GKE cluster"
   type        = string
   default     = "STABLE"
-  
+
   validation {
     condition = contains([
       "RAPID",
-      "REGULAR", 
+      "REGULAR",
       "STABLE"
     ], var.release_channel)
     error_message = "Release channel must be RAPID, REGULAR, or STABLE."

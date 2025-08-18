@@ -14,7 +14,7 @@ resource "google_artifact_registry_repository" "docker_repo" {
   cleanup_policies {
     id     = "delete-old-images"
     action = "DELETE"
-    
+
     condition {
       tag_state  = "TAGGED"
       older_than = "${var.retention_days}d"
@@ -24,7 +24,7 @@ resource "google_artifact_registry_repository" "docker_repo" {
   cleanup_policies {
     id     = "keep-recent-images"
     action = "KEEP"
-    
+
     most_recent_versions {
       keep_count = var.keep_count
     }
@@ -37,7 +37,7 @@ resource "google_artifact_registry_repository_iam_binding" "docker_repo_readers"
   location   = google_artifact_registry_repository.docker_repo.location
   repository = google_artifact_registry_repository.docker_repo.name
   role       = "roles/artifactregistry.reader"
-  
+
   members = [
     "serviceAccount:${var.gke_service_account}",
     "serviceAccount:${var.ci_service_account}",
@@ -49,7 +49,7 @@ resource "google_artifact_registry_repository_iam_binding" "docker_repo_writers"
   location   = google_artifact_registry_repository.docker_repo.location
   repository = google_artifact_registry_repository.docker_repo.name
   role       = "roles/artifactregistry.writer"
-  
+
   members = [
     "serviceAccount:${var.ci_service_account}",
   ]
@@ -77,7 +77,7 @@ resource "google_binary_authorization_policy" "policy" {
 
 # Attestor for build verification
 resource "google_binary_authorization_attestor" "build_attestor" {
-  name = "${var.environment}-build-attestor"
+  name        = "${var.environment}-build-attestor"
   description = "Build attestor for ${var.environment}"
 
   attestation_authority_note {
@@ -85,7 +85,7 @@ resource "google_binary_authorization_attestor" "build_attestor" {
 
     public_keys {
       ascii_armored_pgp_public_key = var.pgp_public_key
-      id = "build-key"
+      id                           = "build-key"
     }
   }
 }
@@ -93,7 +93,7 @@ resource "google_binary_authorization_attestor" "build_attestor" {
 # Container Analysis note for attestation
 resource "google_container_analysis_note" "build_note" {
   name = "${var.environment}-build-note"
-  
+
   attestation_authority {
     hint {
       human_readable_name = "Build verification for ${var.environment}"

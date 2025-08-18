@@ -57,7 +57,7 @@ resource "google_container_cluster" "primary" {
   }
 
   # Security and compliance features (managed by Autopilot)
-  
+
   # Database encryption
   database_encryption {
     state    = "ENCRYPTED"
@@ -131,15 +131,15 @@ resource "google_container_cluster" "primary" {
 # Create a namespace for the application
 resource "kubernetes_namespace" "applications" {
   depends_on = [google_container_cluster.primary]
-  
+
   metadata {
     name = var.app_namespace
-    
+
     labels = {
       environment = var.environment
       managed-by  = "terraform"
     }
-    
+
     annotations = {
       "iam.gke.io/gcp-service-account" = var.workload_identity_service_account
     }
@@ -149,11 +149,11 @@ resource "kubernetes_namespace" "applications" {
 # Service account for Kubernetes
 resource "kubernetes_service_account" "workload_identity" {
   depends_on = [google_container_cluster.primary]
-  
+
   metadata {
     name      = var.k8s_service_account_name
     namespace = kubernetes_namespace.applications.metadata[0].name
-    
+
     annotations = {
       "iam.gke.io/gcp-service-account" = var.workload_identity_service_account
     }
