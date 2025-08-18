@@ -145,6 +145,26 @@ if [[ $confirm =~ ^[Yy]$ ]]; then
     # Clean up plan file
     rm -f tfplan
 
+    # Ensure kubectl authentication is properly configured
+    ensure_kubectl_auth() {
+        print_status "Ensuring kubectl authentication is properly configured..."
+
+        # Check and install gke-gcloud-auth-plugin if needed
+        if ! gcloud components list --filter="id:gke-gcloud-auth-plugin" --format="value(state.name)" | grep -q "Installed"; then
+            print_status "Installing gke-gcloud-auth-plugin..."
+            gcloud components install gke-gcloud-auth-plugin --quiet
+            print_success "gke-gcloud-auth-plugin installed"
+        else
+            print_success "gke-gcloud-auth-plugin already installed"
+        fi
+
+        # Update gcloud components
+        print_status "Updating gcloud components for compatibility..."
+        gcloud components update --quiet
+    }
+
+    ensure_kubectl_auth
+
     # Get cluster credentials
     print_status "🔑 Configuring kubectl access to the cluster..."
     CLUSTER_NAME=$(terraform output -raw cluster_name)

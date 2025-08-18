@@ -212,7 +212,14 @@ else
 fi
 
 # Install gke-gcloud-auth-plugin
-gcloud components install gke-gcloud-auth-plugin
+print_status "Installing/checking gke-gcloud-auth-plugin..."
+if ! gcloud components list --filter="id:gke-gcloud-auth-plugin" --format="value(state.name)" | grep -q "Installed"; then
+    print_status "Installing gke-gcloud-auth-plugin..."
+    gcloud components install gke-gcloud-auth-plugin --quiet
+    print_success "gke-gcloud-auth-plugin installed"
+else
+    print_success "gke-gcloud-auth-plugin already installed"
+fi
 
 # Install jq for JSON processing
 if ! command_exists jq; then
@@ -246,7 +253,20 @@ gcloud auth application-default login
 
 # Configure kubectl for GKE
 print_status "Setting up kubectl context..."
-gcloud container clusters get-credentials --region=$REGION || print_warning "No GKE clusters found yet - this is expected for Phase 1"
+# Update gcloud components to ensure compatibility
+print_status "Updating gcloud components..."
+gcloud components update --quiet
+
+# Try to configure kubectl if cluster exists
+if gcloud container clusters list --region=$REGION --format="value(name)" 2>/dev/null | head -n1 | grep -q "."; then
+    CLUSTER_NAME=$(gcloud container clusters list --region=$REGION --format="value(name)" | head -n1)
+    print_status "Configuring kubectl for cluster: $CLUSTER_NAME"
+    gcloud container clusters get-credentials "$CLUSTER_NAME" --region=$REGION
+    print_success "kubectl configured for GKE cluster"
+else
+    print_warning "No GKE clusters found yet - this is expected for Phase 1"
+    print_warning "kubectl will be configured automatically when you create a cluster"
+fi
 
 print_success "Local development environment setup completed"
 

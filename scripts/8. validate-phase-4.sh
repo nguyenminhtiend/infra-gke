@@ -74,6 +74,7 @@ REGION="asia-southeast1"
 title "Validating Prerequisites"
 
 check "gcloud CLI is installed" "command -v gcloud > /dev/null 2>&1"
+check "gke-gcloud-auth-plugin is installed" "gcloud components list --filter='id:gke-gcloud-auth-plugin' --format='value(state.name)' | grep -q 'Installed'"
 check "kubectl is installed" "command -v kubectl > /dev/null 2>&1"
 check "curl is installed" "command -v curl > /dev/null 2>&1"
 

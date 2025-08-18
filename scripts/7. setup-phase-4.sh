@@ -50,6 +50,38 @@ if [ ! -f "gke-deployment-plan.md" ]; then
     exit 1
 fi
 
+# Ensure kubectl authentication is properly configured
+ensure_kubectl_auth() {
+    log "Ensuring kubectl authentication is properly configured..."
+
+    # Check and install gke-gcloud-auth-plugin if needed
+    if ! gcloud components list --filter="id:gke-gcloud-auth-plugin" --format="value(state.name)" | grep -q "Installed"; then
+        log "Installing gke-gcloud-auth-plugin..."
+        gcloud components install gke-gcloud-auth-plugin --quiet
+        log "✅ gke-gcloud-auth-plugin installed"
+    else
+        log "✅ gke-gcloud-auth-plugin already installed"
+    fi
+
+    # Update gcloud components
+    log "Updating gcloud components for compatibility..."
+    gcloud components update --quiet
+
+    # Re-authenticate kubectl with the cluster
+    if [ -n "$PROJECT_ID" ] && [ -n "$REGION" ]; then
+        local cluster_name=$(gcloud container clusters list --region=$REGION --format="value(name)" 2>/dev/null | head -n1)
+        if [ -n "$cluster_name" ]; then
+            log "Re-configuring kubectl for cluster: $cluster_name"
+            gcloud container clusters get-credentials "$cluster_name" --region=$REGION --project=$PROJECT_ID
+            log "✅ kubectl credentials updated"
+        else
+            warn "No GKE cluster found in region $REGION"
+        fi
+    fi
+}
+
+ensure_kubectl_auth
+
 # Check if gcloud is installed and authenticated
 if ! command -v gcloud &> /dev/null; then
     error "gcloud CLI is not installed. Please install and configure gcloud."

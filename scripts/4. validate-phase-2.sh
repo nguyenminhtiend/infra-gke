@@ -171,6 +171,14 @@ else
     print_error "Artifact Registry repository not found: $REPO_NAME"
 fi
 
+# Check kubectl authentication prerequisites
+print_status "Validating kubectl authentication prerequisites..."
+if gcloud components list --filter="id:gke-gcloud-auth-plugin" --format="value(state.name)" | grep -q "Installed"; then
+    print_success "gke-gcloud-auth-plugin is installed"
+else
+    print_error "gke-gcloud-auth-plugin is not installed. Run: gcloud components install gke-gcloud-auth-plugin"
+fi
+
 # Check kubectl connectivity
 print_status "Validating kubectl connectivity..."
 if command_exists kubectl; then
