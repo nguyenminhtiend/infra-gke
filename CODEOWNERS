@@ -1,0 +1,17 @@
+# Global owners
+* @tien-nguyen-engineer
+
+# Terraform infrastructure
+/terraform/ @tien-nguyen-engineer
+
+# Applications
+/apps/ @tien-nguyen-engineer
+
+# GitHub workflows
+/.github/ @tien-nguyen-engineer
+
+# ArgoCD applications
+/argocd/ @tien-nguyen-engineer
+
+# Scripts
+/scripts/ @tien-nguyen-engineer
