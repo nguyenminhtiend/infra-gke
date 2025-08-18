@@ -98,31 +98,59 @@ terraform/
 
 ## Phase 3: Basic Application Setup
 
-### 3.1 Simple Application Structure
+### 3.1 Monorepo Application Structure
 
 ```
 apps/
-├── service-a/
+├── service-a/          # User Management Service
 │   ├── src/
+│   │   ├── health/     # Health check endpoints
+│   │   ├── users/      # User management module
+│   │   └── main.ts
 │   ├── Dockerfile
 │   ├── k8s/
 │   │   └── deployment.yaml
-│   └── package.json
-└── service-b/
-    └── (similar structure)
+│   ├── package.json
+│   ├── nest-cli.json   # NestJS CLI config with SWC
+│   ├── .swcrc          # SWC configuration
+│   └── .env.example
+└── service-b/          # Product Catalog Service
+    ├── src/
+    │   ├── health/     # Health check endpoints
+    │   ├── products/   # Product management module
+    │   └── main.ts
+    ├── Dockerfile
+    ├── k8s/
+    │   └── deployment.yaml
+    ├── package.json
+    ├── nest-cli.json   # NestJS CLI config with SWC
+    ├── .swcrc          # SWC configuration
+    └── .env.example
+pnpm-workspace.yaml     # pnpm workspace configuration
+package.json            # Root package.json with shared dependencies
 ```
 
-### 3.2 Basic NestJS Services
+### 3.2 Modern NestJS v10+ Services
 
-- Simple health check endpoint (/health)
-- Basic logging
-- Environment-based configuration
+- **Framework**: NestJS v10 (latest stable) with modern features
+- **Runtime**: Node.js 22.x LTS
+- **Package Manager**: pnpm for efficient monorepo management
+- **Compiler**: SWC for fast compilation instead of TypeScript compiler
+- **Health Endpoints**: Comprehensive health checks (/health, /ready, /live)
+- **API Documentation**: Swagger/OpenAPI integration
+- **Logging**: Winston for structured logging
+- **Validation**: class-validator and class-transformer for DTOs
+- **Security**: Helmet for security headers
+- **Environment Configuration**: @nestjs/config for environment management
 
-### 3.3 Simple Containerization
+### 3.3 Optimized Containerization
 
-- Basic Dockerfile
-- Standard Node.js base image
-- Basic optimization
+- **Multi-stage Docker builds** for smaller production images
+- **Node.js 22 Alpine** base images for security and size
+- **Non-root user** for enhanced security
+- **Layer optimization** for faster builds and deployments
+- **Health check integration** in Docker containers
+- **.dockerignore** for build efficiency
 
 ---
 
