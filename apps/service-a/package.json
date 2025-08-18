@@ -2,7 +2,6 @@
   "name": "@infra-gke/service-a",
   "version": "1.0.0",
   "description": "Service A - User Management Service",
-  "type": "module",
   "main": "dist/main.js",
   "scripts": {
     "build": "nest build",

@@ -133,7 +133,6 @@ infra-gke/
 ## Next Steps
 
 1. **Phase 2: Basic Infrastructure**
-
    - Deploy GKE Autopilot cluster
    - Set up basic networking
    - Configure Artifact Registry
