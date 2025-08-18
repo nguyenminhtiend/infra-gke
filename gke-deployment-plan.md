@@ -6,13 +6,22 @@ Complete infrastructure and application deployment on Google Kubernetes Engine (
 
 ## Architecture Highlights
 
-- **GKE Autopilot**: Fully managed, optimized Kubernetes clusters
-- **GitOps**: GitHub Actions for CI, ArgoCD for CD
-- **Observability**: Google Cloud Managed Prometheus, Cloud Logging, Cloud Trace
-- **Load Balancing**: Cloud Load Balancer → NEG (Network Endpoint Groups) → Pod IPs
+**Phase 1-5 (Basic Setup):**
+
+- **GKE Autopilot**: Basic fully managed Kubernetes clusters
+- **Simple Networking**: Public cluster with basic load balancing
+- **Manual Deployment**: kubectl-based deployment initially
+- **Basic Observability**: Container logs and simple metrics
 - **Infrastructure as Code**: Terraform with remote state in GCS
-- **Security**: Workload Identity, Binary Authorization, Policy Controller
 - **Region**: asia-southeast1 (Singapore)
+
+**Phase 6+ (Advanced Features):**
+
+- **GitOps**: GitHub Actions for CI, ArgoCD for CD
+- **Advanced Observability**: Google Cloud Managed Prometheus, Cloud Logging, Cloud Trace
+- **Advanced Load Balancing**: Cloud Load Balancer → NEG (Network Endpoint Groups) → Pod IPs
+- **Advanced Security**: Workload Identity, Binary Authorization, Policy Controller
+- **Service Mesh**: Istio/Anthos Service Mesh (optional)
 
 ---
 
@@ -52,53 +61,44 @@ terraform/
     └── backend-config/
 ```
 
-### 1.4 GitHub Repository Setup
+### 1.4 Basic GitHub Repository Setup
 
-- Create monorepo structure
-- Set up branch protection rules
-- Configure GitHub secrets for GCP service account
-- Set up CODEOWNERS file
+- Create simple repository structure
+- Basic branch setup
+- Store GCP service account keys (for later CI/CD phase)
 
 ---
 
-## Phase 2: Core Infrastructure
+## Phase 2: Basic Infrastructure
 
-### 2.1 Networking Foundation
+### 2.1 Simple Networking
 
-- VPC with custom subnets
-- Cloud NAT for egress traffic
-- Private Service Connect for Google APIs
-- Firewall rules and Cloud Armor policies
-- Reserve static IPs for load balancers
+- Default VPC or simple custom VPC
+- Basic subnet configuration
+- Default firewall rules
 
-### 2.2 GKE Autopilot Cluster
+### 2.2 Basic GKE Autopilot Cluster
 
 - Autopilot mode with latest stable channel
-- Private cluster with authorized networks
-- Workload Identity enabled
-- Binary Authorization for container security
-- Config Connector for GCP resource management
-- Fleet registration for multi-cluster management
+- Public cluster (simplified access)
+- Basic node configuration
 
-### 2.3 Artifact Registry
+### 2.3 Basic Artifact Registry
 
 - Docker repository for container images
-- Vulnerability scanning enabled
-- Cleanup policies for old images
-- Integration with Binary Authorization
+- Basic setup without advanced policies
 
-### 2.4 IAM & Security
+### 2.4 Basic IAM & Security
 
-- Workload Identity for pod-level GCP access
-- Least privilege service accounts
-- Secret Manager for sensitive data
-- KMS for encryption keys
+- Basic service accounts
+- Essential permissions only
+- Simple secret handling
 
 ---
 
-## Phase 3: Application Setup
+## Phase 3: Basic Application Setup
 
-### 3.1 Monorepo Structure
+### 3.1 Simple Application Structure
 
 ```
 apps/
@@ -106,40 +106,73 @@ apps/
 │   ├── src/
 │   ├── Dockerfile
 │   ├── k8s/
-│   │   ├── base/
-│   │   └── overlays/
+│   │   └── deployment.yaml
 │   └── package.json
-├── service-b/
-│   └── (similar structure)
-├── shared/
-│   └── libs/
-├── .github/
-│   └── workflows/
-├── argocd/
-│   └── applications/
-└── pnpm-workspace.yaml
+└── service-b/
+    └── (similar structure)
 ```
 
-### 3.2 NestJS Services Implementation
+### 3.2 Basic NestJS Services
 
-- Health check endpoints (/health, /ready)
-- Structured logging with Cloud Logging format
-- OpenTelemetry instrumentation
-- Graceful shutdown handling
+- Simple health check endpoint (/health)
+- Basic logging
 - Environment-based configuration
 
-### 3.3 Containerization
+### 3.3 Simple Containerization
 
-- Multi-stage Dockerfile with distroless base
-- Non-root user execution
-- Security scanning in build pipeline
-- Optimal layer caching
+- Basic Dockerfile
+- Standard Node.js base image
+- Basic optimization
 
 ---
 
-## Phase 4: CI/CD Pipeline
+## Phase 4: Basic Deployment & Connectivity
 
-### 4.1 GitHub Actions (CI)
+### 4.1 Manual Deployment
+
+- kubectl apply for basic deployments
+- Simple service configuration
+- Basic pod connectivity testing
+
+### 4.2 Basic Load Balancing
+
+- Simple LoadBalancer service type
+- Basic ingress setup (if needed)
+- Health check configuration
+
+### 4.3 Service Discovery
+
+- Internal service-to-service communication
+- Basic DNS resolution
+- Simple connectivity testing
+
+---
+
+## Phase 5: Basic Observability
+
+### 5.1 Basic Monitoring
+
+- Simple pod and service monitoring
+- Basic resource usage tracking
+- Simple health checks
+
+### 5.2 Basic Logging
+
+- Container logs with Cloud Logging
+- Basic log viewing and filtering
+- Error identification
+
+### 5.3 Basic Metrics
+
+- CPU and memory metrics
+- Simple application metrics
+- Basic dashboards
+
+---
+
+## Phase 6: CI/CD Pipeline
+
+### 6.1 GitHub Actions (CI)
 
 - Automated testing (unit, integration, e2e)
 - Code quality checks (ESLint, Prettier, SonarQube)
@@ -148,7 +181,7 @@ apps/
 - Semantic versioning with conventional commits
 - Terraform plan/apply for infrastructure changes
 
-### 4.2 ArgoCD Setup (CD)
+### 6.2 ArgoCD Setup (CD)
 
 - App of Apps pattern
 - Automated sync policies
@@ -157,7 +190,7 @@ apps/
 - RBAC with GitHub SSO
 - Multi-environment promotion
 
-### 4.3 GitOps Workflow
+### 6.3 GitOps Workflow
 
 - Feature branch → Dev environment
 - Main branch → Staging environment
@@ -167,34 +200,46 @@ apps/
 
 ---
 
-## Phase 5: Load Balancing & Networking
+## Phase 7: Advanced Networking & Security
 
-### 5.1 Ingress Configuration
+### 7.1 Advanced Networking
 
+- VPC with custom subnets
+- Cloud NAT for egress traffic
+- Private Service Connect for Google APIs
+- Firewall rules and Cloud Armor policies
+- Reserve static IPs for load balancers
 - Google Cloud Load Balancer (Application Load Balancer)
 - Managed SSL certificates
 - Backend configurations with NEG
-- Health checks and session affinity
-- URL maps for routing
-
-### 5.2 Service Connectivity
-
-- Internal load balancing for service-to-service
 - Network Endpoint Groups for pod-level routing
-- Connection draining configuration
-- Timeout and retry policies
-
-### 5.3 DNS & CDN
-
 - Cloud DNS for domain management
 - Cloud CDN for static assets
-- Custom domain setup with SSL
+
+### 7.2 Advanced Security & IAM
+
+- Private cluster with authorized networks
+- Workload Identity for pod-level GCP access
+- Binary Authorization for container security
+- Least privilege service accounts
+- Secret Manager for sensitive data
+- KMS for encryption keys
+- Vulnerability scanning
+- Policy Controller (OPA Gatekeeper)
+- Admission webhooks
+
+### 7.3 Advanced GKE Features
+
+- Config Connector for GCP resource management
+- Fleet registration for multi-cluster management
+- Pod Security Standards
+- RBAC with least privilege
 
 ---
 
-## Phase 6: Observability Stack
+## Phase 8: Advanced Observability & Monitoring
 
-### 6.1 Metrics & Monitoring
+### 8.1 Advanced Metrics & Monitoring
 
 - Google Cloud Managed Service for Prometheus (GMP)
 - Custom dashboards in Cloud Monitoring
@@ -202,7 +247,7 @@ apps/
 - Alert policies with escalation
 - Cost monitoring dashboards
 
-### 6.2 Logging
+### 8.2 Advanced Logging
 
 - Structured logging from applications
 - Log aggregation with Cloud Logging
@@ -210,14 +255,14 @@ apps/
 - Log sinks for long-term storage
 - Error reporting integration
 
-### 6.3 Tracing
+### 8.3 Distributed Tracing
 
 - Cloud Trace integration
 - Distributed tracing with OpenTelemetry
 - Latency analysis
 - Dependency mapping
 
-### 6.4 Application Performance Monitoring
+### 8.4 Application Performance Monitoring
 
 - Cloud Profiler for CPU/memory analysis
 - Error tracking with Error Reporting
@@ -226,30 +271,29 @@ apps/
 
 ---
 
-## Phase 7: Advanced Features (Future)
+## Phase 9: Advanced Application Features
 
-### 7.1 Service Mesh (Istio/Anthos Service Mesh)
+### 9.1 Service Mesh (Istio/Anthos Service Mesh)
 
 - Traffic management
 - Security policies (mTLS, AuthZ)
 - Observability enhancements
 - Circuit breaking and retries
 
-### 7.2 Network Policies
+### 9.2 Network Policies
 
 - Kubernetes NetworkPolicies
 - Calico or Cilium for advanced policies
 - Microsegmentation
 - Zero-trust networking
 
-### 7.3 Advanced Security
+### 9.3 Advanced Application Security
 
-- Policy Controller (OPA Gatekeeper)
-- Admission webhooks
 - Runtime security with Falco
 - Compliance scanning
+- Advanced container scanning
 
-### 7.4 Disaster Recovery
+### 9.4 Disaster Recovery
 
 - Multi-region setup
 - Backup strategies with Velero
@@ -258,16 +302,16 @@ apps/
 
 ---
 
-## Phase 8: Operations & Maintenance
+## Phase 10: Operations & Maintenance
 
-### 8.1 Day-2 Operations
+### 10.1 Day-2 Operations
 
 - Cluster upgrades strategy
 - Node pool management
 - Capacity planning
 - Performance tuning
 
-### 8.2 Cost Optimization
+### 10.2 Cost Optimization
 
 - Spot/Preemptible nodes usage
 - Autoscaling policies
@@ -275,14 +319,14 @@ apps/
 - FinOps practices
 - Committed use discounts
 
-### 8.3 Documentation
+### 10.3 Documentation
 
 - Architecture diagrams
 - Runbooks for common tasks
 - Incident response procedures
 - API documentation
 
-### 8.4 Testing Strategy
+### 10.4 Testing Strategy
 
 - Chaos engineering with Chaos Mesh
 - Load testing with K6/Locust
@@ -329,42 +373,48 @@ apps/
 
 ## Implementation Timeline
 
-### Week 1-2: Foundation
+### Week 1-2: Foundation (Phase 1)
 
 - GCP setup and local environment
 - Terraform base modules
 - GitHub repository setup
 
-### Week 3-4: Core Infrastructure
+### Week 3-4: Basic Infrastructure (Phase 2)
 
-- GKE cluster deployment
-- Networking and security basics
-- Artifact Registry setup
+- Basic GKE cluster deployment
+- Simple networking setup
+- Basic Artifact Registry setup
 
-### Week 5-6: Application Development
+### Week 5-6: Application & Deployment (Phase 3-4)
 
-- NestJS services implementation
-- Containerization
-- Basic Kubernetes manifests
+- Basic NestJS services implementation
+- Simple containerization
+- Manual deployment and testing
+- Basic load balancing
 
-### Week 7-8: CI/CD Pipeline
+### Week 7-8: Basic Observability (Phase 5)
+
+- Basic monitoring setup
+- Container logs configuration
+- Simple metrics and dashboards
+
+### Week 9-10: CI/CD Automation (Phase 6)
 
 - GitHub Actions workflows
 - ArgoCD installation and configuration
 - GitOps setup
 
-### Week 9-10: Observability
+### Week 11-12: Advanced Features (Phase 7-8)
 
-- Monitoring stack deployment
-- Dashboard creation
-- Alert configuration
+- Advanced networking and security
+- Enhanced observability
+- Performance optimization
 
-### Week 11-12: Production Readiness
+### Week 13+: Advanced & Operations (Phase 9-10)
 
-- Load testing
-- Security hardening
-- Documentation
-- Runbook creation
+- Service mesh (optional)
+- Advanced security features
+- Production operations setup
 
 ---
 
