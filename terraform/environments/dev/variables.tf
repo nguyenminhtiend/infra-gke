@@ -26,3 +26,9 @@ variable "vpc_name" {
   type        = string
   default     = "gke-vpc-dev"
 }
+
+variable "github_repository" {
+  description = "GitHub repository for Workload Identity (format: owner/repo)"
+  type        = string
+  default     = "tien-nguyen-engineer/gke-app"
+}

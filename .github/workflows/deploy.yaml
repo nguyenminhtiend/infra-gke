@@ -15,32 +15,32 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.modified, 'terraform/')
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.0
-          
+
       - id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-          
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-        
+
       - name: Terraform Init
         run: terraform init
         working-directory: terraform/environments/dev
-        
+
       - name: Terraform Plan
         run: terraform plan
         working-directory: terraform/environments/dev
-        
+
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
