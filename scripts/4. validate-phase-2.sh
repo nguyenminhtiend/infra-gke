@@ -41,6 +41,47 @@ command_exists() {
 echo "🔍 Phase 2 Validation - Basic Infrastructure"
 echo "============================================="
 
+# Check and fix authentication issues
+print_status "🔐 Validating authentication..."
+
+# Check if GOOGLE_APPLICATION_CREDENTIALS is set to wrong project
+if [ ! -z "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
+    print_warning "GOOGLE_APPLICATION_CREDENTIALS is set to: $GOOGLE_APPLICATION_CREDENTIALS"
+
+    # Try to extract project from the credentials file if it's JSON
+    if [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+        CRED_PROJECT=$(jq -r '.project_id // empty' "$GOOGLE_APPLICATION_CREDENTIALS" 2>/dev/null || echo "")
+        if [ ! -z "$CRED_PROJECT" ] && [ "$CRED_PROJECT" != "$PROJECT_ID" ]; then
+            print_error "Service account credentials are for project '$CRED_PROJECT' but we need '$PROJECT_ID'"
+            print_status "Unsetting GOOGLE_APPLICATION_CREDENTIALS to use application default credentials..."
+            unset GOOGLE_APPLICATION_CREDENTIALS
+            export GOOGLE_APPLICATION_CREDENTIALS=""
+            print_success "GOOGLE_APPLICATION_CREDENTIALS unset"
+        elif [ -z "$CRED_PROJECT" ]; then
+            print_warning "Could not determine project from credentials file"
+            print_status "Unsetting GOOGLE_APPLICATION_CREDENTIALS to avoid conflicts..."
+            unset GOOGLE_APPLICATION_CREDENTIALS
+            export GOOGLE_APPLICATION_CREDENTIALS=""
+            print_success "GOOGLE_APPLICATION_CREDENTIALS unset"
+        fi
+    else
+        print_warning "Credentials file does not exist, unsetting GOOGLE_APPLICATION_CREDENTIALS..."
+        unset GOOGLE_APPLICATION_CREDENTIALS
+        export GOOGLE_APPLICATION_CREDENTIALS=""
+        print_success "GOOGLE_APPLICATION_CREDENTIALS unset"
+    fi
+fi
+
+# Verify application default credentials work for the current project
+print_status "Verifying application default credentials..."
+if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then
+    print_warning "Application default credentials not configured or expired"
+    print_status "Setting up application default credentials..."
+    gcloud auth application-default login
+fi
+
+print_success "Authentication validated"
+
 # Check if we can get terraform outputs
 print_status "Checking Terraform deployment..."
 cd "$TERRAFORM_DIR"

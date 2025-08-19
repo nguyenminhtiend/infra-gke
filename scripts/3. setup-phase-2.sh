@@ -86,6 +86,74 @@ fi
 
 print_success "Prerequisites validated"
 
+# Check and fix authentication issues
+print_status "🔐 Validating authentication..."
+
+# Check if GOOGLE_APPLICATION_CREDENTIALS is set to wrong project
+if [ ! -z "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
+    print_warning "GOOGLE_APPLICATION_CREDENTIALS is set to: $GOOGLE_APPLICATION_CREDENTIALS"
+
+    # Try to extract project from the credentials file if it's JSON
+    if [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+        CRED_PROJECT=$(jq -r '.project_id // empty' "$GOOGLE_APPLICATION_CREDENTIALS" 2>/dev/null || echo "")
+        if [ ! -z "$CRED_PROJECT" ] && [ "$CRED_PROJECT" != "$PROJECT_ID" ]; then
+            print_error "Service account credentials are for project '$CRED_PROJECT' but we need '$PROJECT_ID'"
+            print_status "Unsetting GOOGLE_APPLICATION_CREDENTIALS to use application default credentials..."
+            unset GOOGLE_APPLICATION_CREDENTIALS
+            export GOOGLE_APPLICATION_CREDENTIALS=""
+            print_success "GOOGLE_APPLICATION_CREDENTIALS unset"
+        elif [ -z "$CRED_PROJECT" ]; then
+            print_warning "Could not determine project from credentials file"
+            print_status "Unsetting GOOGLE_APPLICATION_CREDENTIALS to avoid conflicts..."
+            unset GOOGLE_APPLICATION_CREDENTIALS
+            export GOOGLE_APPLICATION_CREDENTIALS=""
+            print_success "GOOGLE_APPLICATION_CREDENTIALS unset"
+        fi
+    else
+        print_warning "Credentials file does not exist, unsetting GOOGLE_APPLICATION_CREDENTIALS..."
+        unset GOOGLE_APPLICATION_CREDENTIALS
+        export GOOGLE_APPLICATION_CREDENTIALS=""
+        print_success "GOOGLE_APPLICATION_CREDENTIALS unset"
+    fi
+fi
+
+# Verify application default credentials work for the current project
+print_status "Verifying application default credentials..."
+if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then
+    print_warning "Application default credentials not configured or expired"
+    print_status "Setting up application default credentials..."
+    gcloud auth application-default login
+fi
+
+# Test access to the GCS bucket for Terraform state
+TERRAFORM_STATE_BUCKET="${PROJECT_ID}-terraform-state"
+print_status "Testing access to Terraform state bucket..."
+if ! gsutil ls "gs://$TERRAFORM_STATE_BUCKET" >/dev/null 2>&1; then
+    print_error "Cannot access Terraform state bucket: gs://$TERRAFORM_STATE_BUCKET"
+    print_error "Please ensure the bucket exists and you have proper permissions"
+    exit 1
+fi
+
+print_success "Authentication validated"
+
+# Check for GOOGLE_APPLICATION_CREDENTIALS in shell profiles to prevent future issues
+print_status "Checking shell profiles for GOOGLE_APPLICATION_CREDENTIALS..."
+SHELL_PROFILES=(
+    "$HOME/.zshrc"
+    "$HOME/.bash_profile"
+    "$HOME/.bashrc"
+    "$HOME/.profile"
+)
+
+for profile in "${SHELL_PROFILES[@]}"; do
+    if [ -f "$profile" ] && grep -q "GOOGLE_APPLICATION_CREDENTIALS.*terraform-gcp-key.json" "$profile" 2>/dev/null; then
+        print_warning "Found GOOGLE_APPLICATION_CREDENTIALS in $profile"
+        print_warning "Consider removing or commenting out this line to avoid conflicts:"
+        grep -n "GOOGLE_APPLICATION_CREDENTIALS.*terraform-gcp-key.json" "$profile" | head -1
+        echo ""
+    fi
+done
+
 # Navigate to terraform directory
 cd "$TERRAFORM_DIR"
 
