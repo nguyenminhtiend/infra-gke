@@ -191,15 +191,66 @@ fi
 # Install/Update tools
 print_status "Installing/updating development tools..."
 
-# Install Terraform (latest)
-if ! command_exists terraform; then
-    brew install terraform
+# Install/Force upgrade Terraform to latest version
+print_status "Installing/upgrading Terraform to latest version..."
+TERRAFORM_LATEST_VERSION="1.12.2"
+TERRAFORM_OS="darwin_arm64"
+
+# Check if Terraform exists and get version
+if command_exists terraform; then
+    CURRENT_VERSION=$(terraform version | grep -o 'v[0-9.]*' | sed 's/v//' || echo "0.0.0")
+    print_status "Current Terraform version: v$CURRENT_VERSION"
 else
-    brew upgrade terraform
+    CURRENT_VERSION="0.0.0"
+    print_status "Terraform not found, installing..."
 fi
 
-TERRAFORM_VERSION=$(terraform version -json | jq -r '.terraform_version')
+# Install via Homebrew first if available, then upgrade manually if needed
+if ! command_exists terraform; then
+    print_status "Attempting Homebrew installation first..."
+    brew install terraform 2>/dev/null || true
+fi
+
+# Check if we have a recent enough version, if not install manually
+CURRENT_VERSION=$(terraform version 2>/dev/null | grep -o 'v[0-9.]*' | sed 's/v//' || echo "0.0.0")
+if [ "$(printf '%s\n' "1.6.0" "$CURRENT_VERSION" | sort -V | head -n1)" != "1.6.0" ]; then
+    print_warning "Terraform version $CURRENT_VERSION is too old. Installing latest version manually..."
+
+    # Download and install latest Terraform
+    print_status "Downloading Terraform v$TERRAFORM_LATEST_VERSION..."
+    cd /tmp
+    curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_LATEST_VERSION}/terraform_${TERRAFORM_LATEST_VERSION}_${TERRAFORM_OS}.zip"
+    unzip "terraform_${TERRAFORM_LATEST_VERSION}_${TERRAFORM_OS}.zip"
+
+    # Install to /usr/local/bin
+    sudo mv terraform /usr/local/bin/
+    rm "terraform_${TERRAFORM_LATEST_VERSION}_${TERRAFORM_OS}.zip" LICENSE.txt 2>/dev/null || true
+
+    # Update symlink if Homebrew version exists
+    if [ -f "/opt/homebrew/bin/terraform" ]; then
+        sudo rm /opt/homebrew/bin/terraform 2>/dev/null || true
+        sudo ln -s /usr/local/bin/terraform /opt/homebrew/bin/terraform
+    fi
+
+    cd - >/dev/null
+    print_success "Terraform v$TERRAFORM_LATEST_VERSION installed manually"
+else
+    print_status "Attempting Homebrew upgrade..."
+    brew upgrade terraform 2>/dev/null || print_warning "Homebrew upgrade failed (expected due to license change)"
+fi
+
+# Verify final version
+TERRAFORM_VERSION=$(terraform version -json 2>/dev/null | jq -r '.terraform_version' || terraform version | grep -o 'v[0-9.]*' | sed 's/v//')
 print_success "Terraform installed/updated: v$TERRAFORM_VERSION"
+
+# Final version check
+if [ "$(printf '%s\n' "1.6.0" "$TERRAFORM_VERSION" | sort -V | head -n1)" != "1.6.0" ]; then
+    print_error "Terraform version $TERRAFORM_VERSION is still below minimum requirement (>= 1.6.0)"
+    print_error "Please manually install Terraform >= 1.6.0 from https://www.terraform.io/downloads.html"
+    exit 1
+else
+    print_success "Terraform version $TERRAFORM_VERSION meets minimum requirement"
+fi
 
 # Install kubectl
 if ! command_exists kubectl; then
@@ -345,24 +396,24 @@ EOF
 # Create versions.tf for consistent provider versions
 cat > terraform/shared/backend-config/versions.tf << 'EOF'
 terraform {
-  required_version = ">= 1.9.0"
+  required_version = ">= 1.6.0"
 
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.0"
+      version = "~> 6.14"
     }
     google-beta = {
       source  = "hashicorp/google-beta"
-      version = "~> 6.0"
+      version = "~> 6.14"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.33"
+      version = "~> 2.35"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 2.16"
+      version = "~> 2.17"
     }
   }
 }
@@ -496,7 +547,7 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VERSION: '1.9'
+  TF_VERSION: 'latest'
 
 jobs:
   terraform-plan:

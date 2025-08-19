@@ -144,8 +144,26 @@ for tool_info in "${tools[@]}"; do
     description=${tool_info##*:}
 
     if command_exists "$tool"; then
-        version=$($tool version 2>/dev/null | head -n1 || echo "installed")
-        print_success "$description is installed: $version"
+        if [ "$tool" = "terraform" ]; then
+            # Special handling for Terraform version validation
+            version_output=$($tool version 2>/dev/null | head -n1 || echo "unknown")
+            print_success "$description is installed: $version_output"
+
+            # Check if Terraform version meets minimum requirement (1.6.0)
+            tf_version=$(echo "$version_output" | grep -o 'v[0-9.]*' | sed 's/v//' || echo "0.0.0")
+            required_version="1.6.0"
+
+            # Simple version comparison (works for x.y.z format)
+            if [ "$(printf '%s\n' "$required_version" "$tf_version" | sort -V | head -n1)" = "$required_version" ]; then
+                print_success "Terraform version $tf_version meets minimum requirement (>= $required_version)"
+            else
+                print_error "Terraform version $tf_version is below minimum requirement (>= $required_version)"
+                print_status "Please run the setup script to upgrade Terraform"
+            fi
+        else
+            version=$($tool version 2>/dev/null | head -n1 || echo "installed")
+            print_success "$description is installed: $version"
+        fi
     else
         print_error "$description is not installed"
     fi
@@ -216,3 +234,8 @@ echo "1. Copy terraform/environments/dev/terraform.tfvars.example to terraform.t
 echo "2. Customize the terraform.tfvars file as needed"
 echo "3. Run: cd terraform/environments/dev && terraform init"
 echo "4. Proceed to Phase 2: Basic Infrastructure setup"
+echo ""
+print_status "🔧 Recommended Tool Versions:"
+echo "  - Terraform: >= 1.6.0 (latest is 1.12.x)"
+echo "  - Google Cloud SDK: latest"
+echo "  - kubectl: latest"
