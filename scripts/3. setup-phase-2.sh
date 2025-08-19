@@ -123,6 +123,9 @@ if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then
     print_warning "Application default credentials not configured or expired"
     print_status "Setting up application default credentials..."
     gcloud auth application-default login
+    print_success "Application default credentials configured"
+else
+    print_success "Application default credentials are valid"
 fi
 
 # Test access to the GCS bucket for Terraform state

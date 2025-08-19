@@ -102,8 +102,11 @@ if command_exists terraform && [ -d "$TERRAFORM_DIR" ]; then
     print_status "Attempting Terraform cleanup..."
     cd "$TERRAFORM_DIR"
 
-    # Fix authentication
-    gcloud auth application-default login --no-launch-browser 2>/dev/null || true
+    # Check authentication
+    if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then
+        print_warning "Application default credentials not configured"
+        gcloud auth application-default login 2>/dev/null || true
+    fi
 
     if terraform init 2>/dev/null && terraform plan -destroy -out=destroy.tfplan 2>/dev/null; then
         if confirm_action "Use Terraform to destroy infrastructure"; then
@@ -247,13 +250,14 @@ rm -rf .gcp-keys/*.json 2>/dev/null || true
 
 print_success "Local cleanup completed"
 
-# === PHASE 5: RE-AUTHENTICATION (Optional) ===
-print_title "🔑 Phase 5: Re-authentication (Recommended)"
+# === PHASE 5: AUTHENTICATION CHECK ===
+print_title "🔑 Phase 5: Authentication Status"
 
-if confirm_action "Re-authenticate gcloud for fresh start"; then
-    gcloud auth login
-    gcloud auth application-default login
-    print_success "Re-authentication completed"
+if gcloud auth application-default print-access-token >/dev/null 2>&1; then
+    print_success "Application default credentials are configured and valid"
+else
+    print_warning "Application default credentials may need to be reconfigured"
+    print_status "Run: gcloud auth application-default login"
 fi
 
 # === COMPLETION & RESTART INSTRUCTIONS ===

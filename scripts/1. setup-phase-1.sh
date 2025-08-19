@@ -248,8 +248,14 @@ else
 fi
 
 # Configure gcloud application default credentials
-print_status "Configuring gcloud application default credentials..."
-gcloud auth application-default login
+print_status "Checking gcloud application default credentials..."
+if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then
+    print_status "Application default credentials not found, setting up..."
+    gcloud auth application-default login
+    print_success "Application default credentials configured"
+else
+    print_success "Application default credentials already configured"
+fi
 
 # Configure kubectl for GKE
 print_status "Setting up kubectl context..."
