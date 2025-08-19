@@ -87,7 +87,18 @@ REQUIRED_APIS=(
 
 for api in "${REQUIRED_APIS[@]}"; do
     print_status "Enabling $api..."
-    gcloud services enable $api
+    if ! gcloud services enable $api 2>&1; then
+        error_output=$(gcloud services enable $api 2>&1 || true)
+        if echo "$error_output" | grep -q "being deactivated"; then
+            print_warning "Service is being deactivated. Waiting 3 minutes for completion..."
+            sleep 180
+            print_status "Retrying $api..."
+            gcloud services enable $api
+        else
+            print_error "Failed to enable $api: $error_output"
+            exit 1
+        fi
+    fi
 done
 
 print_success "All required APIs enabled"

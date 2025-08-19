@@ -166,42 +166,7 @@ else
     print_warning "Terraform state bucket not found"
 fi
 
-# === PHASE 4: OPTIONAL API CLEANUP ===
-echo ""
-print_warning "🔧 Optional: Disable GCP APIs"
-echo "This will disable all APIs that were enabled in Phase 1."
-echo "WARNING: This may affect other projects or services!"
-echo ""
-read -p "Do you want to disable the GCP APIs? (y/N): " disable_apis
-
-if [[ $disable_apis =~ ^[Yy]$ ]]; then
-    print_status "Disabling GCP APIs..."
-
-    APIS_TO_DISABLE=(
-        "container.googleapis.com"
-        "compute.googleapis.com"
-        "cloudbuild.googleapis.com"
-        "artifactregistry.googleapis.com"
-        "cloudtrace.googleapis.com"
-        "monitoring.googleapis.com"
-        "logging.googleapis.com"
-        "secretmanager.googleapis.com"
-        "dns.googleapis.com"
-        "servicenetworking.googleapis.com"
-        "cloudkms.googleapis.com"
-    )
-
-    for api in "${APIS_TO_DISABLE[@]}"; do
-        print_status "Disabling $api..."
-        gcloud services disable $api --force --quiet 2>/dev/null || true
-    done
-
-    print_success "APIs disabled"
-else
-    print_warning "APIs left enabled - you can disable them manually if needed"
-fi
-
-# === PHASE 5: LOCAL CLEANUP ===
+# === PHASE 4: LOCAL CLEANUP ===
 print_status "🧹 Cleaning local files and configurations..."
 
 # Remove service account keys directory
@@ -239,11 +204,6 @@ echo "  ✅ IAM policy bindings"
 echo "  ✅ GCS bucket for Terraform state"
 echo "  ✅ Local Terraform configurations"
 echo "  ✅ GitHub Actions workflow templates"
-if [[ $disable_apis =~ ^[Yy]$ ]]; then
-    echo "  ✅ GCP APIs disabled"
-else
-    echo "  ⚠️  GCP APIs left enabled"
-fi
 
 echo ""
 print_status "📝 Next Steps:"
