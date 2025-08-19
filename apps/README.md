@@ -8,7 +8,6 @@ This directory contains the application services for the platform.
 - `service-b/`: Example NestJS service
 
 Each service follows this structure:
-
 - `src/`: Source code
 - `k8s/`: Kubernetes manifests
 - `Dockerfile`: Container build configuration
