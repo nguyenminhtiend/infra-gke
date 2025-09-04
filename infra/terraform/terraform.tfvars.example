@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and update values or let scripts write it
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+
+# WIF
+wif_pool_id        = "gh-pool"
+wif_provider_id    = "gh-provider"
+github_org         = "your-github-org"
+github_repo        = "your-repo"
+github_allowed_ref = "refs/heads/main"
+
