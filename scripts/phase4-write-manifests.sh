@@ -35,6 +35,17 @@ GIT_REPO_URL_NOSUFFIX=${GIT_REPO_URL%.git}
 # Ensure directories exist
 mkdir -p "$ARGCD_DIR/projects" "$ARGCD_DIR/apps"
 
+# Always update repo URL/branch placeholders first (does not require network)
+if grep -q 'REPO_URL_PLACEHOLDER' "$ARGCD_DIR/projects/apps-project.yaml" 2>/dev/null; then
+  sed -i'' -e "s#REPO_URL_PLACEHOLDER#$GIT_REPO_URL_NOSUFFIX#g" "$ARGCD_DIR/projects/apps-project.yaml"
+fi
+if grep -q 'REPO_URL_PLACEHOLDER' "$ARGCD_DIR/apps/root-apps.yaml" 2>/dev/null; then
+  sed -i'' -e "s#REPO_URL_PLACEHOLDER#$GIT_REPO_URL_NOSUFFIX#g" -e "s#targetRevision: .*#targetRevision: $BRANCH#g" "$ARGCD_DIR/apps/root-apps.yaml"
+else
+  # Still ensure branch is set
+  sed -i'' -e "s#targetRevision: .*#targetRevision: $BRANCH#g" "$ARGCD_DIR/apps/root-apps.yaml" || true
+fi
+
 echo "Checking dependencies..."
 if ! command -v helm >/dev/null 2>&1; then
   echo "ERROR: helm not found. Install helm 3 first." >&2
@@ -68,21 +79,16 @@ if [[ -z "${LATEST_NGINX:-}" || -z "${LATEST_PODINFO:-}" ]]; then
 fi
 
 if [[ -z "${LATEST_NGINX:-}" || -z "${LATEST_PODINFO:-}" ]]; then
-  echo "ERROR: Chart versions are empty. Provide NGINX_CHART_VERSION and PODINFO_CHART_VERSION env vars or ensure network access." >&2
-  echo "Example: NGINX_CHART_VERSION=18.3.3 PODINFO_CHART_VERSION=6.6.4 bash scripts/phase4-write-manifests.sh" >&2
-  exit 1
+  echo "NOTE: Skipping chart version updates; could not resolve versions and no overrides provided." >&2
+  echo "      You can run again with: NGINX_CHART_VERSION=<x.y.z> PODINFO_CHART_VERSION=<a.b.c>" >&2
+else
+  echo "bitnami/nginx -> $LATEST_NGINX"
+  echo "stefanprodan/podinfo -> $LATEST_PODINFO"
+  sed -i'' -e "s#CHART_VERSION_PODINFO_PLACEHOLDER#$LATEST_PODINFO#g" "$ARGCD_DIR/apps/podinfo-app.yaml"
+  sed -i'' -e "s#CHART_VERSION_NGINX_PLACEHOLDER#$LATEST_NGINX#g" "$ARGCD_DIR/apps/nginx-app.yaml"
 fi
 
-echo "bitnami/nginx -> $LATEST_NGINX"
-echo "stefanprodan/podinfo -> $LATEST_PODINFO"
-
-# Substitute placeholders in templates
-sed -i'' -e "s#REPO_URL_PLACEHOLDER#$GIT_REPO_URL_NOSUFFIX#g" "$ARGCD_DIR/projects/apps-project.yaml"
-sed -i'' -e "s#REPO_URL_PLACEHOLDER#$GIT_REPO_URL_NOSUFFIX#g" -e "s#targetRevision: .*#targetRevision: $BRANCH#g" "$ARGCD_DIR/apps/root-apps.yaml"
-sed -i'' -e "s#CHART_VERSION_PODINFO_PLACEHOLDER#$LATEST_PODINFO#g" "$ARGCD_DIR/apps/podinfo-app.yaml"
-sed -i'' -e "s#CHART_VERSION_NGINX_PLACEHOLDER#$LATEST_NGINX#g" "$ARGCD_DIR/apps/nginx-app.yaml"
-
-echo "Phase 4 manifests updated with latest chart versions and repo URL:"
+echo "Phase 4 manifests updated (repo URL/branch always set; charts updated if available):"
 echo "- $ARGCD_DIR/projects/apps-project.yaml"
 echo "- $ARGCD_DIR/apps/root-apps.yaml"
 echo "- $ARGCD_DIR/apps/podinfo-app.yaml"

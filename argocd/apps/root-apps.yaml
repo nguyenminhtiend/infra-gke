@@ -6,7 +6,7 @@ metadata:
 spec:
   project: apps
   source:
-    repoURL: REPO_URL_PLACEHOLDER
+    repoURL: https://github.com/nguyenminhtiend/infra-gke
     path: argocd/apps
     targetRevision: main
     directory:
@@ -20,4 +20,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-

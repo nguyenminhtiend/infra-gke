@@ -7,6 +7,8 @@ spec:
   description: Project for sample apps managed via GitOps
   sourceRepos:
     - https://github.com/nguyenminhtiend/infra-gke
+    - https://charts.bitnami.com/bitnami
+    - https://stefanprodan.github.io/podinfo
   destinations:
     - namespace: '*'
       server: https://kubernetes.default.svc
@@ -18,4 +20,3 @@ spec:
       kind: '*'
   orphanedResources:
     warn: true
-
