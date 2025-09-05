@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://stefanprodan.github.io/podinfo
     chart: podinfo
-    targetRevision: CHART_VERSION_PODINFO_PLACEHOLDER
+    targetRevision: 6.9.1
     helm:
       releaseName: podinfo
   destination:

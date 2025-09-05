@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: nginx
-    targetRevision: 21.1.23
+    targetRevision: CHART_VERSION_NGINX_PLACEHOLDER
     helm:
       releaseName: nginx
   destination:

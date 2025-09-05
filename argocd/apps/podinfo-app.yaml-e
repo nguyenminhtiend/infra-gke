@@ -1,23 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: nginx
+  name: podinfo
   namespace: argocd
 spec:
   project: apps
   source:
-    repoURL: https://charts.bitnami.com/bitnami
-    chart: nginx
-    targetRevision: 21.1.23
+    repoURL: https://stefanprodan.github.io/podinfo
+    chart: podinfo
+    targetRevision: CHART_VERSION_PODINFO_PLACEHOLDER
     helm:
-      releaseName: nginx
+      releaseName: podinfo
   destination:
     server: https://kubernetes.default.svc
-    namespace: nginx
+    namespace: podinfo
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
