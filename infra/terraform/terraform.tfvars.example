@@ -9,3 +9,6 @@ github_org         = "your-github-org"
 github_repo        = "your-repo"
 github_allowed_ref = "refs/heads/main"
 
+# Argo CD chart (pin via Phase 3 script or set manually)
+# argocd_chart_version = "<chart-version>"  # e.g., "7.7.17"
+# argocd_namespace     = "argocd"

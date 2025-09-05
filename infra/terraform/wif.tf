@@ -38,16 +38,16 @@ resource "google_iam_workload_identity_pool" "gh_pool" {
 }
 
 resource "google_iam_workload_identity_pool_provider" "gh_provider" {
-  project                           = var.project_id
-  workload_identity_pool_id         = google_iam_workload_identity_pool.gh_pool.workload_identity_pool_id
+  project                            = var.project_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.gh_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = var.wif_provider_id
-  display_name                      = "GitHub OIDC Provider"
-  description                       = "Trust GitHub Actions OIDC tokens"
+  display_name                       = "GitHub OIDC Provider"
+  description                        = "Trust GitHub Actions OIDC tokens"
   attribute_mapping = {
-    "google.subject"    = "assertion.sub"
-    "attribute.actor"   = "assertion.actor"
+    "google.subject"       = "assertion.sub"
+    "attribute.actor"      = "assertion.actor"
     "attribute.repository" = "assertion.repository"
-    "attribute.ref"     = "assertion.ref"
+    "attribute.ref"        = "assertion.ref"
   }
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
@@ -59,7 +59,7 @@ resource "google_iam_workload_identity_pool_provider" "gh_provider" {
 // Service Account used by GitHub Actions via WIF
 resource "google_service_account" "tf_ci" {
   project      = var.project_id
-  account_id   = "tf-ci"
+  account_id   = "terraform-ci"
   display_name = "Terraform CI via WIF"
 }
 
@@ -101,4 +101,3 @@ output "ci_service_account_email" {
   value       = google_service_account.tf_ci.email
   description = "Service Account email for CI"
 }
-

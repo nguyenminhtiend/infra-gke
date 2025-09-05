@@ -86,6 +86,7 @@ Checkpoints
  - Plan changes: `bash scripts/phase1-terraform-plan.sh`
  - Apply (WIF + CI SA): `bash scripts/phase1-terraform-apply.sh`
  - Verify resources: `PROJECT_ID="<id>" bash scripts/phase1-verify.sh`
+ - Note: CI Service Account ID is `terraform-ci` (must be 6–30 chars, start with a letter, only lowercase letters, digits, and hyphens, and end with a letter or digit).
 
  Notes
  - Provider versions are pinned (google/google-beta 5.43.1, kubernetes 2.32.0, helm 2.13.2) and Terraform `>= 1.6, < 2.0`. Update as needed.
@@ -125,6 +126,15 @@ Deliverables
 Checkpoints
 - Argo CD workloads show Healthy/Synced.
 - You can port‑forward to the UI and log in with the initial admin password from the Argo CD secret.
+
+ Scripts (2025‑ready)
+ - Env vars (required): `PROJECT_ID`
+ - Env vars (optional): `ARGOCD_NAMESPACE=argocd`, `ARGOCD_CHART_VERSION=<chart-version>`
+ - Pin latest chart in tfvars: `bash scripts/phase3-write-argocd-tfvars.sh`
+ - Plan Helm install: `bash scripts/phase3-terraform-plan.sh`
+ - Apply Helm install: `bash scripts/phase3-terraform-apply.sh`
+ - Verify install + get password: `PROJECT_ID="<id>" bash scripts/phase3-verify.sh`
+ - Port‑forward UI: `bash scripts/phase3-port-forward-argocd.sh` (default http://localhost:8080)
 
 ## Phase 4 — GitOps Structure (App of Apps + AppProject)
 Goals
